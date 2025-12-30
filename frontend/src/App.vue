@@ -1,85 +1,52 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { useAuthStore } from './stores/auth';
+import { useRouter } from 'vue-router';
+
+const auth = useAuthStore();
+const router = useRouter();
+
+const logout = () => {
+  auth.logout();
+  router.push('/login');
+};
 </script>
 
 <template>
   <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <nav>
+      <div class="logo">DeFi Staking</div>
+      <div class="links">
+        <router-link to="/">{{ $t('nav.home') }}</router-link>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+        <template v-if="auth.isAuthenticated">
+          <router-link to="/dashboard">{{ $t('nav.dashboard') }}</router-link>
+          <button @click="logout" class="logout-btn">{{ $t('nav.logout') }}</button>
+        </template>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
+        <template v-else>
+          <router-link to="/login">{{ $t('nav.login') }}</router-link>
+        </template>
+
+        <select v-model="$i18n.locale" class="lang-select">
+          <option value="en">EN</option>
+          <option value="ua">UA</option>
+        </select>
+      </div>
+    </nav>
   </header>
 
   <RouterView />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<style>
+/* Global Styles */
+body { margin: 0; font-family: sans-serif; background-color: #f4f6f8; }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
+header { background: #333; color: white; padding: 1rem 2rem; }
+nav { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-weight: bold; font-size: 1.2rem; color: #4CAF50; }
+.links a { color: white; text-decoration: none; margin-left: 15px; }
+.links a.router-link-active { color: #4CAF50; }
+.logout-btn { margin-left: 15px; background: #f44336; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+.lang-select { margin-left: 15px; padding: 5px; }
 </style>
