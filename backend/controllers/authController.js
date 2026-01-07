@@ -47,3 +47,40 @@ exports.login = (req, res) => {
         });
     });
 };
+
+exports.updateProfile = (req, res) => {
+    const userId = req.user.id;
+    const { email, currentPassword, newPassword } = req.body;
+
+    if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required to save changes." });
+    }
+
+    db.get(`SELECT * FROM users WHERE id = ?`, [userId], (err, user) => {
+        if (err || !user) return res.status(404).json({ message: "User not found" });
+
+        const passwordIsValid = bcrypt.compareSync(currentPassword, user.password_hash);
+        if (!passwordIsValid) {
+            return res.status(401).json({ message: "Incorrect current password" });
+        }
+
+        let newPasswordHash = user.password_hash;
+        if (newPassword && newPassword.trim() !== "") {
+            newPasswordHash = bcrypt.hashSync(newPassword, 8);
+        }
+
+        const newEmail = email || user.email;
+
+        const sql = `UPDATE users SET email = ?, password_hash = ? WHERE id = ?`;
+        db.run(sql, [newEmail, newPasswordHash, userId], function(err) {
+            if (err) {
+                if (err.message.includes('UNIQUE')) {
+                    return res.status(400).json({ message: "Email already in use" });
+                }
+                return res.status(500).json({ error: err.message });
+            }
+
+            res.json({ message: "Profile updated successfully!" });
+        });
+    });
+};

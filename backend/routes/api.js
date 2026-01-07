@@ -11,6 +11,7 @@ router.get('/pools', dataController.getAllPools);
 router.post('/stake', verifyToken, dataController.stakeTokens);
 router.get('/my-stakes', verifyToken, dataController.getMyStakes);
 router.post('/claim', verifyToken, dataController.claimReward);
+router.put('/profile', verifyToken, authController.updateProfile);
 
 router.post('/pools', [verifyToken, isAdmin], dataController.createPool);
 

@@ -20,6 +20,8 @@ const logout = () => {
         <router-link to="/dashboard">{{ $t('nav.dashboard') }}</router-link>
 
         <template v-if="auth.isAuthenticated">
+          <router-link to="/profile">Profile</router-link>
+
           <button @click="logout" class="logout-btn">{{ $t('nav.logout') }}</button>
         </template>
 
