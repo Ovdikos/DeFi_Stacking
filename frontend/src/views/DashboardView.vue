@@ -74,6 +74,18 @@ const submitStake = async () => {
   }
 };
 
+const handleClaim = async (stakeId) => {
+  if (!confirm("Are you sure you want to withdraw your funds and rewards?")) return;
+
+  try {
+    await api.post('/claim', { stakeId });
+    alert("Funds claimed to your wallet!");
+    await fetchData();
+  } catch (error) {
+    alert("Error claiming: " + (error.response?.data?.message || "Unknown error"));
+  }
+};
+
 const createPool = async () => {
   try {
     await api.post('/pools', newPool.value);
@@ -88,6 +100,8 @@ const createPool = async () => {
 onMounted(() => {
   fetchData();
 });
+
+
 </script>
 
 <template>
@@ -128,9 +142,29 @@ onMounted(() => {
               <span class="status-badge" :class="stake.status">{{ stake.status }}</span>
             </div>
             <div class="stake-details">
-              <p>Amount: <strong>${{ stake.amount }}</strong></p>
-              <p>APY: <span class="green">{{ stake.apy_percentage }}%</span></p>
-              <small>{{ new Date(stake.staked_at).toLocaleDateString() }}</small>
+              <div class="detail-row">
+                <span>Staked Amount:</span>
+                <strong>${{ stake.amount }}</strong>
+              </div>
+              <div class="detail-row">
+                <span>Est. Reward:</span>
+                <strong class="profit">+${{ stake.profit }}</strong>
+              </div>
+              <div class="detail-row">
+                <span>APY:</span>
+                <span class="green">{{ stake.apy_percentage }}%</span>
+              </div>
+              <small class="date">Unlock: {{ new Date(stake.unlock_date).toLocaleDateString() }}</small>
+            </div>
+
+            <div v-if="stake.status === 'completed'" class="stake-actions">
+              <button @click="handleClaim(stake.id)" class="btn-claim">
+                Claim ${{ (parseFloat(stake.amount) + parseFloat(stake.profit)).toFixed(2) }}
+              </button>
+            </div>
+
+            <div v-if="stake.status === 'claimed'" class="stake-actions">
+              <span class="claimed-text">Paid out</span>
             </div>
           </div>
           <div class="pagination" v-if="totalPages > 1">
@@ -304,6 +338,60 @@ onMounted(() => {
   background: #f5f5f5;
   color: #757575;
   border: 1px solid #e0e0e0;
+}
+
+.status-badge.claimed {
+  background: #e0e0e0;
+  color: #9e9e9e;
+  border: 1px solid #bdbdbd;
+  text-decoration: line-through;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.95rem;
+}
+
+.profit {
+  color: #4CAF50;
+}
+
+.date {
+  display: block;
+  margin-top: 10px;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.stake-actions {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #eee;
+  text-align: center;
+}
+
+.btn-claim {
+  width: 100%;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-claim:hover {
+  opacity: 0.9;
+}
+
+.claimed-text {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 .apy {

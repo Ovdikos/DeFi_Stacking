@@ -10,7 +10,6 @@ exports.getAllPools = (req, res) => {
 exports.createPool = (req, res) => {
     const { name, apy, lockPeriod, risk, desc } = req.body;
 
-    // Server-side validation
     if (!name || !apy || !lockPeriod) {
         return res.status(400).json({ message: "Missing required pool data" });
     }
@@ -24,7 +23,7 @@ exports.createPool = (req, res) => {
 
 exports.stakeTokens = (req, res) => {
     const { pool_id, amount } = req.body;
-    const user_id = req.user.id; // From JWT middleware
+    const user_id = req.user.id;
 
     if (amount <= 0) return res.status(400).json({ message: "Amount must be positive" });
 
@@ -69,13 +68,30 @@ exports.getMyStakes = (req, res) => {
                 currentStatus = 'completed';
             }
 
+            const profit = (row.amount * (row.apy_percentage / 100) * (row.min_lock_period / 365)).toFixed(2);
+
             return {
                 ...row,
                 status: currentStatus,
-                unlock_date: unlockDate.toISOString()
+                unlock_date: unlockDate.toISOString(),
+                profit: profit
             };
         });
 
         res.json({ stakes: processedRows });
+    });
+};
+
+exports.claimReward = (req, res) => {
+    const { stakeId } = req.body;
+    const user_id = req.user.id;
+
+    const sql = `UPDATE stakes SET status = 'claimed' WHERE id = ? AND user_id = ?`;
+
+    db.run(sql, [stakeId, user_id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ message: "Stake not found or already claimed" });
+
+        res.json({ message: "Rewards claimed successfully!" });
     });
 };

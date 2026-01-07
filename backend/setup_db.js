@@ -34,7 +34,7 @@ const createTables = () => {
                 pool_id INTEGER NOT NULL,
                 amount REAL NOT NULL,
                 staked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                status TEXT CHECK(status IN ('active', 'completed', 'unstaked')) DEFAULT 'active',
+                status TEXT CHECK(status IN ('active', 'completed', 'unstaked', 'claimed')) DEFAULT 'active',
                 FOREIGN KEY (user_id) REFERENCES users (id),
                 FOREIGN KEY (pool_id) REFERENCES pools (id)
             )`);
@@ -56,7 +56,6 @@ const seedData = async () => {
 
     const stmtPool = db.prepare("INSERT INTO pools (name, apy_percentage, min_lock_period, risk_level, description) VALUES (?, ?, ?, ?, ?)");
 
-    // Check if pools exist to avoid duplication on re-run
     db.get("SELECT count(*) as count FROM pools", (err, row) => {
         if (row.count === 0) {
             stmtPool.run('Ethereum 2.0 Staking', 4.5, 30, 'Low', 'Safe staking for ETH holders.');
@@ -72,5 +71,4 @@ createTables()
     .then(() => seedData())
     .catch(err => console.error(err));
 
-// Make database file connection instructions easy to follow
 console.log(`Database initialized at: ${dbPath}`);
