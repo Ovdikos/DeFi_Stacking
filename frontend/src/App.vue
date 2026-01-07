@@ -17,14 +17,15 @@ const logout = () => {
       <div class="logo">DeFi Staking</div>
       <div class="links">
         <router-link to="/">{{ $t('nav.home') }}</router-link>
+        <router-link to="/dashboard">{{ $t('nav.dashboard') }}</router-link>
 
         <template v-if="auth.isAuthenticated">
-          <router-link to="/dashboard">{{ $t('nav.dashboard') }}</router-link>
           <button @click="logout" class="logout-btn">{{ $t('nav.logout') }}</button>
         </template>
 
         <template v-else>
           <router-link to="/login">{{ $t('nav.login') }}</router-link>
+          <router-link to="/register">{{ $t('nav.register') }}</router-link>
         </template>
 
         <select v-model="$i18n.locale" class="lang-select">
@@ -39,7 +40,6 @@ const logout = () => {
 </template>
 
 <style>
-/* Global Styles */
 body { margin: 0; font-family: sans-serif; background-color: #f4f6f8; }
 
 header { background: #333; color: white; padding: 1rem 2rem; }
