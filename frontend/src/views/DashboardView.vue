@@ -97,6 +97,15 @@ const createPool = async () => {
   }
 };
 
+const selectedRisk = ref('All');
+
+const filteredPools = computed(() => {
+  if (selectedRisk.value === 'All') {
+    return pools.value;
+  }
+  return pools.value.filter(pool => pool.risk_level === selectedRisk.value);
+});
+
 onMounted(() => {
   fetchData();
 });
@@ -182,8 +191,21 @@ onMounted(() => {
       </div>
 
       <div class="section pools-list">
-        <h2>Available Liquidity Pools</h2>
-        <div v-for="pool in pools" :key="pool.id" class="pool-card">
+        <div class="pools-header">
+          <h2>Available Liquidity Pools</h2>
+
+          <div class="filter-box">
+            <label>Risk Level:</label>
+            <select v-model="selectedRisk">
+              <option value="All">All Risks</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-for="pool in filteredPools" :key="pool.id" class="pool-card">
           <div class="pool-info">
             <h3>{{ pool.name }}</h3>
             <p class="desc">{{ pool.description }}</p>
@@ -196,6 +218,10 @@ onMounted(() => {
             <div class="apy">{{ pool.apy_percentage }}%</div>
             <button @click="openStakeModal(pool)" class="btn-stake">Stake</button>
           </div>
+        </div>
+
+        <div v-if="filteredPools.length === 0" class="empty-state">
+          No pools found for this risk level.
         </div>
       </div>
     </div>
@@ -287,6 +313,41 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.pools-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.pools-header h2 {
+  margin-bottom: 0;
+  font-size: 1.3rem;
+}
+
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.filter-box select {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  outline: none;
+}
+
+.filter-box select:focus {
+  border-color: #2196F3;
 }
 
 .stake-card {
