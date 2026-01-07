@@ -125,7 +125,7 @@ onMounted(() => {
           <div v-for="stake in paginatedStakes" :key="stake.id" class="stake-card">
             <div class="stake-header">
               <span class="pool-name">{{ stake.pool_name }}</span>
-              <span class="status-badge active">Active</span>
+              <span class="status-badge" :class="stake.status">{{ stake.status }}</span>
             </div>
             <div class="stake-details">
               <p>Amount: <strong>${{ stake.amount }}</strong></p>
@@ -180,39 +180,255 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.dashboard { padding: 20px; max-width: 1200px; margin: 0 auto; }
-.header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.dashboard {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-/* Role Badges */
-.role-badge { padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; color: white; }
-.role-badge.admin { background: #ff9800; }
-.role-badge.user { background: #2196F3; }
-.role-badge.guest { background: #9e9e9e; }
+.header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-/* Guest Promo */
-.guest-promo { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
-.btn-promo { display: inline-block; background: #2196F3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; }
+.role-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: white;
+}
 
-.grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-.section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.pool-card, .stake-card { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-.apy { font-size: 1.5rem; font-weight: bold; color: #4CAF50; }
-.tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 4px; background: #eee; margin-right: 5px; }
-.tag.low { background: #e8f5e9; color: #2e7d32; } .tag.medium { background: #fff3e0; color: #ef6c00; } .tag.high { background: #ffebee; color: #c62828; }
-.btn-stake { background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+.role-badge.admin {
+  background: #ff9800;
+}
 
-/* Admin */
-.admin-panel { border: 2px solid #ff9800; margin-bottom: 30px; background: #fff8e1; }
-.admin-form input, .admin-form select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
-.admin-form .row { display: flex; gap: 10px; }
-.btn-admin { background: #ff9800; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; }
+.role-badge.user {
+  background: #2196F3;
+}
 
-/* Modal & Pagination */
-.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
-.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
-.modal { background: white; padding: 30px; border-radius: 10px; width: 400px; }
-.modal input { width: 100%; padding: 10px; margin: 15px 0; font-size: 1.2rem; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-.btn-confirm { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; }
-.btn-cancel { background: #999; color: white; border: none; padding: 10px 20px; border-radius: 5px; }
+.role-badge.guest {
+  background: #9e9e9e;
+}
+
+
+.guest-promo {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+
+.btn-promo {
+  display: inline-block;
+  background: #2196F3;
+  color: white;
+  padding: 12px 24px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.pool-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stake-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: white;
+  display: block;
+  transition: transform 0.2s;
+}
+
+.stake-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.stake-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pool-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-badge.completed {
+  background: #f5f5f5;
+  color: #757575;
+  border: 1px solid #e0e0e0;
+}
+
+.apy {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.tag {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #eee;
+  margin-right: 5px;
+}
+
+.tag.low {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.tag.medium {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.tag.high {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.btn-stake {
+  background: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-panel {
+  border: 2px solid #ff9800;
+  margin-bottom: 30px;
+  background: #fff8e1;
+}
+
+.admin-form input, .admin-form select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.admin-form .row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-admin {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+}
+
+.modal input {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  font-size: 1.2rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-confirm {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.btn-cancel {
+  background: #999;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
 </style>

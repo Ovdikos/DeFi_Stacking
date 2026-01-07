@@ -39,14 +39,43 @@ exports.getMyStakes = (req, res) => {
     const user_id = req.user.id;
 
     const sql = `
-        SELECT stakes.id, stakes.amount, stakes.staked_at, stakes.status, pools.name as pool_name, pools.apy_percentage 
-        FROM stakes 
-        JOIN pools ON stakes.pool_id = pools.id 
+        SELECT stakes.id, stakes.amount, stakes.staked_at, stakes.status,
+               pools.name as pool_name, pools.apy_percentage, pools.min_lock_period
+        FROM stakes
+                 JOIN pools ON stakes.pool_id = pools.id
         WHERE stakes.user_id = ?
     `;
 
     db.all(sql, [user_id], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ stakes: rows });
+
+        const now = new Date();
+
+        const processedRows = rows.map(row => {
+            let dateString = row.staked_at;
+            if (dateString && !dateString.includes('T')) {
+                dateString = dateString.replace(' ', 'T') + 'Z';
+            }
+
+            const stakeDate = new Date(dateString);
+            const lockPeriodDays = row.min_lock_period;
+
+            const unlockDate = new Date(stakeDate);
+            unlockDate.setDate(unlockDate.getDate() + lockPeriodDays);
+
+            let currentStatus = row.status;
+
+            if (currentStatus === 'active' && now > unlockDate) {
+                currentStatus = 'completed';
+            }
+
+            return {
+                ...row,
+                status: currentStatus,
+                unlock_date: unlockDate.toISOString()
+            };
+        });
+
+        res.json({ stakes: processedRows });
     });
 };

@@ -12,10 +12,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// API Routes
 app.use('/api', apiRoutes);
 
-// Health check
 app.get('/', (req, res) => {
     res.json({ message: "DeFi Staking API is running..." });
 });
